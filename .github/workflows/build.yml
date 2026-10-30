@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,14 +20,25 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build APK
+      - name: Find project and build APK
         run: |
+          PACKAGE=$(find . -name package.json -not -path '*/node_modules/*' -print -quit)
+
+          if [ -z "$PACKAGE" ]; then
+            echo "package.json not found"
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$PACKAGE")
+          echo "Project directory: $PROJECT_DIR"
+
+          cd "$PROJECT_DIR"
+          npm install
           npm install @capacitor/cli @capacitor/core @capacitor/android
+
           npx cap add android || true
           npx cap sync android
+
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -35,4 +47,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Mamin-Mir-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/android/app/build/outputs/apk/debug/app-debug.apk"
