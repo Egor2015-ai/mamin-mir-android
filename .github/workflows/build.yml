@@ -61,6 +61,7 @@ jobs:
           npm install @capacitor/cli @capacitor/core @capacitor/android
 
           npx cap add android || true
+          npx esbuild www/push.js --bundle --format=esm --outfile=www/push.bundle.js
           npx cap sync android
 
           mkdir -p android/app
