@@ -88,6 +88,7 @@ const firebaseConfig={apiKey:"AIzaSyCArimolQwfSka805dKsT9Nxuo7EW1pDaU",authDomai
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
+window.mmAuth=auth;window.mmDb=db;
 const $=id=>document.getElementById(id);
 
 $('openWelcome').onclick=()=>{const w=$('welcomeScreen');w.classList.add('hide');setTimeout(()=>w.remove(),380)};
@@ -184,4 +185,5 @@ $('exportData').onclick=()=>{const data={tasks:read('tasks'),shopping:read('shop
 renderAll();document.addEventListener('visibilitychange',()=>{if(!document.hidden){$('today').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'short',day:'numeric',month:'long'}).format(new Date());updateDailyContent()}});if(location.hash&&$(location.hash.slice(1)))go(location.hash.slice(1));
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
+<script type="module" src="./push.bundle.js"></script>
 </body></html>
