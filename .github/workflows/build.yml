@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -40,11 +39,33 @@ jobs:
 
           cd "$PROJECT_DIR"
 
+          if [ ! -f google-services.json ]; then
+            echo "ERROR: google-services.json not found in project root"
+            exit 1
+          fi
+
+          python3 - <<'PY'
+          import json
+          with open("google-services.json", encoding="utf-8") as f:
+              config = json.load(f)
+          packages = [
+              client.get("client_info", {}).get("android_client_info", {}).get("package_name")
+              for client in config.get("client", [])
+          ]
+          if "ru.maminmir.app" not in packages:
+              raise SystemExit("ERROR: google-services.json does not contain Android package ru.maminmir.app")
+          print("Firebase Android package verified.")
+          PY
+
           npm install
           npm install @capacitor/cli @capacitor/core @capacitor/android
 
           npx cap add android || true
           npx cap sync android
+
+          mkdir -p android/app
+          cp google-services.json android/app/google-services.json
+          echo "Firebase Android config copied."
 
           cd android
           chmod +x gradlew
