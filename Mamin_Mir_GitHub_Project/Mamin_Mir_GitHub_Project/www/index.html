@@ -73,7 +73,21 @@ header{padding:24px 4px 16px;display:flex;align-items:center;justify-content:spa
 </nav>
 <footer>Сделано с любовью 🌷 · <a href="admin.html" style="color:inherit">Админ-панель</a></footer>
 </div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<div id="authGate" style="position:fixed;inset:0;z-index:100;background:linear-gradient(145deg,#fff8f6,#f4e2e9);display:grid;place-items:center;padding:24px">
+ <form id="authForm" style="width:min(100%,390px);background:white;border-radius:24px;padding:24px;box-shadow:0 12px 40px #8e5a6b22">
+  <h2 style="color:#986477">🌷 Мамин мир</h2><p>Войди в свой аккаунт, чтобы увидеть письма.</p>
+  <input id="authEmail" type="email" required placeholder="Электронная почта" style="width:100%;padding:13px;border:1px solid #e8cbd5;border-radius:12px;margin:7px 0">
+  <input id="authPassword" type="password" required placeholder="Пароль" style="width:100%;padding:13px;border:1px solid #e8cbd5;border-radius:12px;margin:7px 0">
+  <button class="primary" type="submit" style="width:100%;margin-top:8px">Войти</button><p id="authError" style="color:#a34d65"></p>
+ </form></div>
 <script>
+const firebaseConfig={apiKey:"AIzaSyCArimolQwfSka805dKsT9Nxuo7EW1pDaU",authDomain:"mamin-mir.firebaseapp.com",projectId:"mamin-mir",storageBucket:"mamin-mir.firebasestorage.app",messagingSenderId:"309496375401",appId:"1:309496375401:web:bd9471e1db8f79735d5af8"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
 const $=id=>document.getElementById(id);
 
 $('openWelcome').onclick=()=>{const w=$('welcomeScreen');w.classList.add('hide');setTimeout(()=>w.remove(),380)};
@@ -111,15 +125,31 @@ function holidayWish(date){
  if(m===11&&d>=25&&d<=30&&date.getDay()===0)return "С Днём матери! Мамочка, спасибо за твою любовь, заботу и большое сердце. Желаю тебе здоровья, счастья и каждый день чувствовать, как сильно тебя любят! 💐";
  return null;
 }
+let remoteLetters=[];
 function renderLetters(){
  const host=document.getElementById('lettersList'); if(!host)return;
- let letters=[]; try{letters=JSON.parse(localStorage.getItem('maminLetters')||'[]')}catch(e){}
  const now=new Date();
- const visible=letters.filter(x=>!x.publishAt || new Date(x.publishAt)<=now).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
- if(!visible.length)return;
+ const visible=remoteLetters.filter(x=>!x.publishAt || new Date(x.publishAt)<=now).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
  host.innerHTML='';
- visible.forEach(x=>{const panel=document.createElement('div');panel.className='panel';const h=document.createElement('h3');h.textContent='💌 '+(x.title||'Письмо для мамы Оли');const p=document.createElement('p');p.className='quote';p.style.whiteSpace='pre-line';p.style.lineHeight='1.9';p.textContent=x.body;panel.append(h,p);host.append(panel)});
+ if(!visible.length){host.innerHTML='<div class="panel">Пока новых писем нет 🌷</div>';return}
+ visible.forEach(x=>{const panel=document.createElement('div');panel.className='panel';const h=document.createElement('h3');h.textContent='💌 '+(x.title||'Письмо для мамы Оли');const p=document.createElement('p');p.className='quote';p.style.whiteSpace='pre-line';p.style.lineHeight='1.9';p.textContent=x.body||'';panel.append(h,p);host.append(panel)});
 }
+function startLettersSync(){
+ db.collection('letters').onSnapshot(snapshot=>{
+  remoteLetters=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+  renderLetters();
+ },error=>{console.error(error);$('lettersList').textContent='Не удалось загрузить письма. Проверь подключение к интернету.'});
+}
+$('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();$('authError').textContent='';
+ try{await auth.signInWithEmailAndPassword($('authEmail').value.trim(),$('authPassword').value)}
+ catch(error){$('authError').textContent='Не удалось войти. Проверь почту и пароль.'}
+});
+auth.onAuthStateChanged(user=>{
+ $('authGate').style.display=user?'none':'grid';
+ if(user)startLettersSync();
+});
+
 function updateDailyContent(){
  const today=new Date(), holiday=holidayWish(today);
  $('quote').textContent=holiday||dailyWishes[dayIndex(today)];
