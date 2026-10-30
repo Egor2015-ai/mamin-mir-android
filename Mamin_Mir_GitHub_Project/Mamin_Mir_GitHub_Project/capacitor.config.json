@@ -1,0 +1,6 @@
+{
+  "appId": "ru.maminmir.app",
+  "appName": "Мамин мир",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
