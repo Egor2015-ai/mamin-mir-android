@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309496375401",
+    "project_id": "mamin-mir",
+    "storage_bucket": "mamin-mir.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309496375401:android:092a37f8fe3072505d5af8",
+        "android_client_info": {
+          "package_name": "ru.maminmir.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_vkXALzOdUn8FL-c4lB-BmjJSYdzjwVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
